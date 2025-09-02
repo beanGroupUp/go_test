@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"go_test/week1/1-14/hello"
-	"go_test/week1/1-14/hello2"
+	model2 "go_test/week1/1-14/hello2"
 )
 
 func main() {
