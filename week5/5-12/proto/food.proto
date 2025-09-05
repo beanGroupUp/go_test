@@ -1,0 +1,98 @@
+// 指定使用 Protocol Buffers 第3版语法
+syntax = "proto3";
+
+// 指定生成的Go代码的包路径为/pb
+option go_package = "/pb";
+
+// 定义一个名为FoodService的服务
+service FoodService {
+  // 定义一个RPC方法：SayName（服务端流模式）
+  // 客户端发送单个请求，服务端返回多个响应（流式响应）
+  rpc SayName(FoodStreamRequest) returns (stream FoodStreamResponse);
+
+  // 定义一个RPC方法：PostName（客户端流模式）
+  // 客户端发送多个请求（流式请求），服务端返回单个响应
+  rpc PostName(stream FoodStreamRequest) returns (FoodStreamResponse);
+
+  // 定义一个RPC方法：FullStream（双向流模式）
+  // 客户端和服务端都可以发送多个消息（双向流式通信）
+  rpc FullStream(stream FoodStreamRequest) returns (stream FoodStreamResponse);
+}
+
+// 定义一个请求消息结构
+message FoodStreamRequest {
+  // 定义一个字符串类型的字段name，字段编号为1
+  // 字段编号用于在二进制编码中标识字段，不能重复
+  string name = 1;
+}
+
+// 定义一个响应消息结构
+message FoodStreamResponse {
+  // 定义一个字符串类型的字段msg，字段编号为1
+  string msg = 1;
+}
+
+
+
+
+
+
+
+/**
+通俗易懂的解释
+这段代码就像是定义了一份"通信合同"，告诉计算机如何在不同程序之间传递关于食物的信息。
+
+syntax = "proto3";
+
+就像是说："我们使用第三版的通信规则"
+
+option go_package = "/pb";
+
+告诉Go语言："请把生成的代码放在/pb这个文件夹里"
+
+service FoodService
+
+定义了一个名为"食物服务"的服务，就像餐厅里的服务员
+
+三种不同的点餐方式：
+
+SayName：你告诉服务员想吃什么（单个请求），服务员一道一道地上菜（多个响应）
+
+PostName：你一道道地点菜（多个请求），服务员最后给你一张总账单（单个响应）
+
+FullStream：你和服务员可以随时交流点菜和上菜（双向流式通信）
+
+message 结构
+
+就像是你和服务员之间传递的纸条格式
+
+FoodStreamRequest：你写给服务员的纸条，上面写着菜名
+
+FoodStreamResponse：服务员回复你的纸条，上面写着菜的状态或信息
+
+实际应用示例
+想象你在一个智能餐厅点餐：
+
+go
+// 客户端代码示例（简化版）
+client := pb.NewFoodServiceClient(conn)
+
+// 服务端流模式：点一道菜，获取烹饪进度流
+stream, _ := client.SayName(context.Background(), &pb.FoodStreamRequest{Name: "披萨"})
+for {
+    response, err := stream.Recv()
+    if err == io.EOF {
+        break
+    }
+    fmt.Println(response.Msg) // 输出："披萨正在准备中", "披萨已放入烤箱", "披萨已完成"
+}
+
+// 客户端流模式：连续点多道菜，最后获取总确认
+stream, _ = client.PostName(context.Background())
+stream.Send(&pb.FoodStreamRequest{Name: "披萨"})
+stream.Send(&pb.FoodStreamRequest{Name: "汉堡"})
+stream.Send(&pb.FoodStreamRequest{Name: "薯条"})
+response, _ := stream.CloseAndRecv()
+fmt.Println(response.Msg) // 输出："已收到您的订单：披萨、汉堡、薯条"
+这种定义方式使得不同程序之间能够以标准化的方式进行通信，就像人们使用同一种语言交流一样。
+ */
